@@ -118,6 +118,16 @@ element_t *q_remove_tail(struct list_head *head, char *sp, size_t bufsize)
     return node;
 }
 
+/*
+ * WARN: This is for external usage, don't modify it
+ * Attempt to release element.
+ */
+void q_release_element(element_t *e)
+{
+    free(e->value);
+    free(e);
+}
+
 /* Return number of elements in queue */
 int q_size(struct list_head *head)
 {
