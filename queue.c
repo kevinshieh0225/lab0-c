@@ -33,7 +33,8 @@ void q_free(struct list_head *l)
     while (ptr != l) {
         element_t *node = container_of(ptr, element_t, list);
         ptr = ptr->next;
-        q_release_element(node);
+        free(node->value);
+        free(node);
     }
     element_t *node = container_of(l, element_t, list);
     free(node);
@@ -144,8 +145,7 @@ int q_size(struct list_head *head)
  * The middle node of a linked list of size n is the
  * ⌊n / 2⌋th node from the start using 0-based indexing.
  * If there're six element, the third member should be return.
- * Return true if successful.
- * Return false if list is NULL or empty.
+ * Return NULL if list is NULL or empty.
  * Ref: https://leetcode.com/problems/delete-the-middle-node-of-a-linked-list/
  */
 bool q_delete_mid(struct list_head *head)
