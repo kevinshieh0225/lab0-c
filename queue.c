@@ -33,8 +33,7 @@ void q_free(struct list_head *l)
     while (ptr != l) {
         element_t *node = container_of(ptr, element_t, list);
         ptr = ptr->next;
-        free(node->value);
-        free(node);
+        q_release_element(node);
     }
     element_t *node = container_of(l, element_t, list);
     free(node);
@@ -165,6 +164,23 @@ bool q_delete_mid(struct list_head *head)
  */
 bool q_delete_dup(struct list_head *head)
 {
+    if (!head || list_empty(head))
+        return false;
+    struct list_head *ckp = head->next, *ptr = ckp->next;
+    element_t *ckpnode = container_of(ckp, element_t, list);
+    while (ptr != head) {
+        element_t *ptrnode = container_of(ptr, element_t, list);
+        if (strcmp(ckpnode->value, ptrnode->value) == 0) {
+            struct list_head *tmp = ptr->next;
+            q_release_element(ptrnode);
+            ckp->next = ptr = tmp;
+            ptr->prev = ckp;
+        } else {
+            ckp = ptr;
+            ckpnode = container_of(ckp, element_t, list);
+            ptr = ptr->next;
+        }
+    }
     return true;
 }
 
@@ -210,5 +226,51 @@ void q_reverse(struct list_head *head)
     }
 }
 
-/* Sort elements of queue in ascending order */
-void q_sort(struct list_head *head) {}
+/*
+ * Sort elements of queue in ascending order
+ * No effect if q is NULL or empty. In addition, if q has only one
+ * element, do nothing.
+ */
+struct list_head *mergeTwoLists(struct list_head *L1, struct list_head *L2)
+{
+    struct list_head *head = NULL, **ptr = &head, **cur;
+    for (cur = NULL; L1 && L2; *cur = (*cur)->next) {
+        // compare accending pair by pair
+        element_t *node1 = container_of(L1, element_t, list);
+        element_t *node2 = container_of(L2, element_t, list);
+        cur = (strcmp(node1->value, node2->value) <= 0) ? &L1 : &L2;
+        *ptr = *cur;
+        ptr = &(*ptr)->next;
+    }
+    *ptr = L1 ? L1 : L2;
+    return head;
+}
+
+static struct list_head *mergesort_list(struct list_head *head)
+{
+    if (!head || !head->next)
+        return head;
+    struct list_head *slow = head;
+    for (struct list_head *fast = head->next; fast && fast->next;
+         fast = fast->next->next)
+        slow = slow->next;
+    struct list_head *mid = slow->next;
+    slow->next = NULL;
+
+    struct list_head *left = mergesort_list(head), *right = mergesort_list(mid);
+    return mergeTwoLists(left, right);
+}
+
+void q_sort(struct list_head *head)
+{
+    if (!head || list_empty(head))
+        return;
+    head->prev->next = NULL;
+    head->next = mergesort_list(head->next);
+    // reassign the prev ptr
+    struct list_head *ptr = head;
+    for (; ptr->next; ptr = ptr->next)
+        ptr->next->prev = ptr;
+    ptr->next = head;
+    head->prev = ptr;
+}
