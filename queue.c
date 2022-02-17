@@ -33,8 +33,7 @@ void q_free(struct list_head *l)
     while (ptr != l) {
         element_t *node = container_of(ptr, element_t, list);
         ptr = ptr->next;
-        free(node->value);
-        free(node);
+        q_release_element(node);
     }
     element_t *node = container_of(l, element_t, list);
     free(node);
