@@ -58,13 +58,14 @@ bool q_insert_head(struct list_head *head, char *s)
     int charsize = 0;
     while (*(s + charsize))
         charsize += 1;
-    node->value = malloc(charsize + 1);
-    if (!node->value) {
+    char *value = malloc(charsize + 1);
+    if (!value) {
         free(node);
         return false;
     }
-    memcpy(node->value, s, charsize);
-    node->value[charsize] = '\0';
+    memcpy(value, s, charsize);
+    value[charsize] = '\0';
+    node->value = value;
     list_add(&(node->list), head);
 
     return true;
@@ -81,13 +82,14 @@ bool q_insert_tail(struct list_head *head, char *s)
     int charsize = 0;
     while (*(s + charsize))
         charsize += 1;
-    node->value = malloc(charsize + 1);
-    if (!node->value) {
+    char *value = malloc(charsize + 1);
+    if (!value) {
         free(node);
         return false;
     }
-    memcpy(node->value, s, charsize);
-    node->value[charsize] = '\0';
+    memcpy(value, s, charsize);
+    value[charsize] = '\0';
+    node->value = value;
     list_add_tail(&(node->list), head);
 
     return true;
