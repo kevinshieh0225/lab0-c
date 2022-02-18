@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -48,6 +49,7 @@ void q_free(struct list_head *l)
  * Argument s points to the string to be stored.
  * The function must explicitly allocate space and copy the string into it.
  */
+
 bool q_insert_head(struct list_head *head, char *s)
 {
     if (!head)
@@ -58,14 +60,13 @@ bool q_insert_head(struct list_head *head, char *s)
     int charsize = 0;
     while (*(s + charsize))
         charsize += 1;
-    char *value = malloc(charsize + 1);
-    if (!value) {
+    node->value = malloc(charsize + 1);
+    if (!node->value) {
         free(node);
         return false;
     }
-    memcpy(value, s, charsize);
-    value[charsize] = '\0';
-    node->value = value;
+    memcpy(node->value, s, charsize);
+    node->value[charsize] = '\0';
     list_add(&(node->list), head);
 
     return true;
@@ -88,14 +89,13 @@ bool q_insert_tail(struct list_head *head, char *s)
     int charsize = 0;
     while (*(s + charsize))
         charsize += 1;
-    char *value = malloc(charsize + 1);
-    if (!value) {
+    node->value = malloc(charsize + 1);
+    if (!node->value) {
         free(node);
         return false;
     }
-    memcpy(value, s, charsize);
-    value[charsize] = '\0';
-    node->value = value;
+    memcpy(node->value, s, charsize);
+    node->value[charsize] = '\0';
     list_add_tail(&(node->list), head);
 
     return true;
@@ -190,8 +190,7 @@ bool q_delete_mid(struct list_head *head)
     }
     element_t *node = container_of(slowptr, element_t, list);
     list_del(slowptr);
-    free(node->value);
-    free(node);
+    q_release_element(node);
     return true;
 }
 
@@ -209,19 +208,16 @@ bool q_delete_dup(struct list_head *head)
 {
     if (!head || list_empty(head))
         return false;
-    struct list_head *ckp = head->next, *ptr = ckp->next;
+    struct list_head *ckp = head->next;
     element_t *ckpnode = container_of(ckp, element_t, list);
-    while (ptr != head) {
+    for (struct list_head *ptr = ckp->next; ptr != head; ptr = ckp->next) {
         element_t *ptrnode = container_of(ptr, element_t, list);
         if (strcmp(ckpnode->value, ptrnode->value) == 0) {
-            struct list_head *tmp = ptr->next;
+            list_del(ptr);
             q_release_element(ptrnode);
-            ckp->next = ptr = tmp;
-            ptr->prev = ckp;
         } else {
             ckp = ptr;
             ckpnode = container_of(ckp, element_t, list);
-            ptr = ptr->next;
         }
     }
     return true;
@@ -237,10 +233,12 @@ void q_swap(struct list_head *head)
         return;
     struct list_head *ptr = head;
     while (ptr->next != head && ptr->next->next != head) {
+        // swap next pointer
         struct list_head *tmp = ptr->next->next->next;
         ptr->next->next->next = ptr->next;
         ptr->next = ptr->next->next;
         ptr->next->next->next = tmp;
+        // swap prev pointer
         ptr->next->next->next->prev = ptr->next->next;
         ptr->next->next->prev = ptr->next;
         ptr->next->prev = ptr;
@@ -257,13 +255,14 @@ void q_swap(struct list_head *head)
  */
 void q_reverse(struct list_head *head)
 {
-    for (struct list_head *ptr = head; ptr;) {
-        struct list_head *tmp = ptr->prev;
-        ptr->prev = ptr->next;
-        ptr->next = tmp;
-        ptr = ptr->prev;
-        if (ptr == head)
-            break;
+    struct list_head *ptr = head;
+    if (ptr && !list_empty(ptr)) {
+        do {
+            struct list_head *tmp = ptr->prev;
+            ptr->prev = ptr->next;
+            ptr->next = tmp;
+            ptr = ptr->prev;
+        } while (ptr != head);
     }
 }
 
@@ -283,13 +282,13 @@ struct list_head *mergeTwoLists(struct list_head *L1, struct list_head *L2)
         *ptr = *cur;
         ptr = &(*ptr)->next;
     }
-    *ptr = L1 ? L1 : L2;
+    *ptr = (struct list_head *) ((uintptr_t) L1 | (uintptr_t) L2);
     return head;
 }
 
 static struct list_head *mergesort_list(struct list_head *head)
 {
-    if (!head || !head->next)
+    if (!head->next)
         return head;
     struct list_head *slow = head;
     for (struct list_head *fast = head->next; fast && fast->next;
