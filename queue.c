@@ -324,7 +324,7 @@ void q_sort(struct list_head *head)
 }
 
 // iterate version
-// void q_sort(struct list_head *head)
+// void q_sort_iter(struct list_head *head)
 // {
 //     if (!head || list_empty(head))
 //         return;
