@@ -592,6 +592,38 @@ static bool do_reverse(int argc, char *argv[])
     return !error_check();
 }
 
+static bool do_shuffle(int argc, char *argv[])
+{
+    if (argc != 1) {
+        report(1, "%s takes no arguments", argv[0]);
+        return false;
+    }
+
+    if (!l_meta.l)
+        report(3, "Warning: Calling size on null queue");
+    error_check();
+    bool ok = true;
+    set_noallocate_mode(true);
+    if (exception_setup(true)) {
+        int cnt = q_size(l_meta.l);
+        srand(time(NULL));
+        ok = ok && !error_check();
+        for (int range = cnt; ok && range > 0; range--) {
+            int randint = rand() % range + 1;
+            struct list_head *ptr = l_meta.l;
+            while (randint-- > 0)
+                ptr = ptr->next;
+            list_move_tail(ptr, l_meta.l);
+            ok = ok && !error_check();
+        }
+    }
+    exception_cancel();
+
+    set_noallocate_mode(false);
+    show_queue(3);
+    return ok;
+}
+
 static bool do_size(int argc, char *argv[])
 {
     if (argc != 1 && argc != 2) {
@@ -831,6 +863,9 @@ static void console_init()
         rhq,
         "                | Remove from head of queue without reporting value.");
     ADD_COMMAND(reverse, "                | Reverse queue");
+    ADD_COMMAND(shuffle,
+                "                | Shuffle the queue with Fisher–Yates shuffle "
+                "algorithm");
     ADD_COMMAND(sort, "                | Sort queue in ascending order");
     ADD_COMMAND(
         size, " [n]            | Compute queue size n times (default: n == 1)");
