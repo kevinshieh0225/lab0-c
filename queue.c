@@ -21,9 +21,8 @@ struct list_head *q_new()
     element_t *node = malloc(sizeof(element_t));
     if (!node)
         return NULL;
-    struct list_head *head = &(node->list);
+    struct list_head *head = &node->list;
     INIT_LIST_HEAD(head);
-    // cppcheck-suppress memleak
     return head;
 }
 
@@ -57,9 +56,7 @@ bool q_insert_head(struct list_head *head, char *s)
     element_t *node = malloc(sizeof(element_t));
     if (!node)
         return false;
-    int charsize = 0;
-    while (*(s + charsize))
-        charsize += 1;
+    int charsize = strlen(s);
     char *value = malloc(charsize + 1);
     if (!value) {
         free(node);
@@ -68,7 +65,7 @@ bool q_insert_head(struct list_head *head, char *s)
     memcpy(value, s, charsize);
     value[charsize] = '\0';
     node->value = value;
-    list_add(&(node->list), head);
+    list_add(&node->list, head);
 
     return true;
 }
@@ -87,9 +84,7 @@ bool q_insert_tail(struct list_head *head, char *s)
     element_t *node = malloc(sizeof(element_t));
     if (!node)
         return false;
-    int charsize = 0;
-    while (*(s + charsize))
-        charsize += 1;
+    int charsize = strlen(s);
     char *value = malloc(charsize + 1);
     if (!value) {
         free(node);
@@ -98,7 +93,7 @@ bool q_insert_tail(struct list_head *head, char *s)
     memcpy(value, s, charsize);
     value[charsize] = '\0';
     node->value = value;
-    list_add_tail(&(node->list), head);
+    list_add_tail(&node->list, head);
 
     return true;
 }
@@ -316,3 +311,50 @@ void q_sort(struct list_head *head)
     ptr->next = head;
     head->prev = ptr;
 }
+
+// iterate version
+// void q_sort(struct list_head *head)
+// {
+//     if (!head || list_empty(head))
+//         return;
+//     head->prev->next = NULL;
+
+//     int top = 0;
+//     int listsSize = 0;
+//     struct list_head *stack[1000] = {NULL};
+//     struct list_head *lists[150000] = {NULL};
+
+//     stack[top] = head->next;
+//     // divide to single node
+//     while (top >= 0) {
+//         // printf("[%d %d]",top ,listsSize);
+//         struct list_head *left = stack[top--];
+//         if (left) {
+//             struct list_head *slow = left;
+//             struct list_head *fast;
+//             for (fast = left->next; fast && fast->next;
+//                   fast = fast->next->next)
+//                 slow = slow->next;
+//             struct list_head *right = slow->next;
+//             slow->next = NULL;
+
+//             stack[++top] = left;
+//             stack[++top] = right;
+//         } else
+//             lists[listsSize++] = stack[top--];
+//     }
+//     // printf("end\n");
+//     // merge K sorted lists
+//     while (listsSize > 1) {
+//         for (int i = 0, j = listsSize - 1; i < j; i++, j--)
+//             lists[i] = mergeTwoLists(lists[i], lists[j]);
+//         listsSize = (listsSize + 1) / 2;
+//     }
+//     // reassign the prev ptr
+//     head->next = lists[0];
+//     struct list_head *ptr = head;
+//     for (; ptr->next; ptr = ptr->next)
+//         ptr->next->prev = ptr;
+//     ptr->next = head;
+//     head->prev = ptr;
+// }
