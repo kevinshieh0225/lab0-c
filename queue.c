@@ -33,11 +33,11 @@ void q_free(struct list_head *l)
         return;
     struct list_head *ptr = l->next;
     while (ptr != l) {
-        element_t *node = container_of(ptr, element_t, list);
+        element_t *node = list_entry(ptr, element_t, list);
         ptr = ptr->next;
         q_release_element(node);
     }
-    element_t *node = container_of(l, element_t, list);
+    element_t *node = list_entry(l, element_t, list);
     free(node);
 }
 
@@ -116,7 +116,7 @@ element_t *q_remove_head(struct list_head *head, char *sp, size_t bufsize)
 {
     if (!head || list_empty(head))
         return NULL;
-    element_t *node = container_of(head->next, element_t, list);
+    element_t *node = list_entry(head->next, element_t, list);
     if (sp) {
         memcpy(sp, node->value, bufsize - 1);
         sp[bufsize - 1] = '\0';
@@ -133,7 +133,7 @@ element_t *q_remove_tail(struct list_head *head, char *sp, size_t bufsize)
 {
     if (!head || list_empty(head))
         return NULL;
-    element_t *node = container_of(head->prev, element_t, list);
+    element_t *node = list_entry(head->prev, element_t, list);
     if (sp) {
         memcpy(sp, node->value, bufsize - 1);
         sp[bufsize - 1] = '\0';
@@ -185,7 +185,7 @@ bool q_delete_mid(struct list_head *head)
          fastptr = fastptr->next->next) {
         slowptr = slowptr->next;
     }
-    element_t *node = container_of(slowptr, element_t, list);
+    element_t *node = list_entry(slowptr, element_t, list);
     list_del(slowptr);
     q_release_element(node);
     return true;
@@ -206,10 +206,10 @@ bool q_delete_dup(struct list_head *head)
     if (!head || list_empty(head))
         return false;
     struct list_head *ckp = head->next;
-    element_t *ckpnode = container_of(ckp, element_t, list);
+    element_t *ckpnode = list_entry(ckp, element_t, list);
     bool ckpisdup = false;
     for (struct list_head *ptr = ckp->next; ptr != head; ptr = ckp->next) {
-        element_t *ptrnode = container_of(ptr, element_t, list);
+        element_t *ptrnode = list_entry(ptr, element_t, list);
         if (strcmp(ckpnode->value, ptrnode->value) == 0) {
             list_del(ptr);
             q_release_element(ptrnode);
@@ -221,7 +221,7 @@ bool q_delete_dup(struct list_head *head)
                 ckpisdup = false;
             }
             ckp = ptr;
-            ckpnode = container_of(ckp, element_t, list);
+            ckpnode = list_entry(ckp, element_t, list);
         }
     }
     if (ckpisdup) {
@@ -284,8 +284,8 @@ struct list_head *mergeTwoLists(struct list_head *L1, struct list_head *L2)
     struct list_head *head = NULL, **ptr = &head, **cur;
     for (cur = NULL; L1 && L2; *cur = (*cur)->next) {
         // compare accending pair by pair
-        element_t *node1 = container_of(L1, element_t, list);
-        element_t *node2 = container_of(L2, element_t, list);
+        element_t *node1 = list_entry(L1, element_t, list);
+        element_t *node2 = list_entry(L2, element_t, list);
         cur = (strcmp(node1->value, node2->value) <= 0) ? &L1 : &L2;
         *ptr = *cur;
         ptr = &(*ptr)->next;
