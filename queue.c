@@ -207,15 +207,26 @@ bool q_delete_dup(struct list_head *head)
         return false;
     struct list_head *ckp = head->next;
     element_t *ckpnode = container_of(ckp, element_t, list);
+    bool ckpisdup = false;
     for (struct list_head *ptr = ckp->next; ptr != head; ptr = ckp->next) {
         element_t *ptrnode = container_of(ptr, element_t, list);
         if (strcmp(ckpnode->value, ptrnode->value) == 0) {
             list_del(ptr);
             q_release_element(ptrnode);
+            ckpisdup = true;
         } else {
+            if (ckpisdup) {
+                list_del(ckp);
+                q_release_element(ckpnode);
+                ckpisdup = false;
+            }
             ckp = ptr;
             ckpnode = container_of(ckp, element_t, list);
         }
+    }
+    if (ckpisdup) {
+        list_del(ckp);
+        q_release_element(ckpnode);
     }
     return true;
 }
