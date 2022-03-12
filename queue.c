@@ -39,14 +39,7 @@ void q_free(struct list_head *l)
     free(node);
 }
 
-/* Insert an element at head of queue 
- * 
- * Return true if successful.
- * Return false if q is NULL or could not allocate space.
- * Argument s points to the string to be stored.
- * The function must explicitly allocate space and copy the string into it.
- */
-
+/* Insert an element at head of queue */
 bool q_insert_head(struct list_head *head, char *s)
 {
     if (!head)
@@ -122,11 +115,6 @@ element_t *q_remove_tail(struct list_head *head, char *sp, size_t bufsize)
  * WARN: This is for external usage, don't modify it
  * Attempt to release element.
  */
-void q_release_element(element_t *e)
-{
-    free(e->value);
-    free(e);
-}
 
 /* Return number of elements in queue */
 int q_size(struct list_head *head)
@@ -186,20 +174,25 @@ bool q_delete_dup(struct list_head *head)
         if (strcmp(ckpnode->value, ptrnode->value) == 0) {
             list_del(ptr);
             q_release_element(ptrnode);
+            ckpisdup = true;
         } else {
+            if (ckpisdup) {
+                list_del(ckp);
+                q_release_element(ckpnode);
+                ckpisdup = false;
+            }
             ckp = ptr;
             ckpnode = list_entry(ckp, element_t, list);
         }
     }
+    if (ckpisdup) {
+        list_del(ckp);
+        q_release_element(ckpnode);
+    }
     return true;
 }
 
-/* 
- * Swap every two adjacent nodes
- * 
- * Attempt to swap every two adjacent nodes.
- * Ref: https://leetcode.com/problems/swap-nodes-in-pairs/
- */
+/* Swap every two adjacent nodes */
 void q_swap(struct list_head *head)
 {
     if (!head || list_empty(head))
