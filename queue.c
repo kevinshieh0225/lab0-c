@@ -289,37 +289,28 @@ void q_sort(struct list_head *head)
 }
 
 // iterate version
-// void q_sort_iter(struct list_head *head)
+// void q_sort(struct list_head *head)
 // {
 //     if (!head || list_empty(head))
 //         return;
 //     head->prev->next = NULL;
 
-//     int top = 0;
 //     int listsSize = 0;
-//     struct list_head *stack[1000] = {NULL};
 //     struct list_head *lists[150000] = {NULL};
 
-//     stack[top] = head->next;
 //     // divide to single node
-//     while (top >= 0) {
-//         // printf("[%d %d]",top ,listsSize);
-//         struct list_head *left = stack[top--];
-//         if (left) {
-//             struct list_head *slow = left;
-//             struct list_head *fast;
-//             for (fast = left->next; fast && fast->next;
-//                   fast = fast->next->next)
-//                 slow = slow->next;
-//             struct list_head *right = slow->next;
-//             slow->next = NULL;
-
-//             stack[++top] = left;
-//             stack[++top] = right;
-//         } else
-//             lists[listsSize++] = stack[top--];
+//     struct list_head *node = head->next;
+//     while (node) {
+//         struct list_head *iter = node;
+//         while (iter && iter->next &&
+//               list_entry(iter, element_t, list)->value <
+//               list_entry(iter->next, element_t, list)->value)
+//             iter = iter->next;
+//         lists[listsSize++] = node;
+//         node = iter->next;
+//         iter->next = NULL;
 //     }
-//     // printf("end\n");
+
 //     // merge K sorted lists
 //     while (listsSize > 1) {
 //         for (int i = 0, j = listsSize - 1; i < j; i++, j--)
